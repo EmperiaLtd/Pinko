@@ -13,10 +13,10 @@ Globals:
           AllowHeaders: "'content-type'"
           AllowOrigin: "'*'"
   Function:
-    Timeout: 5
+    Timeout: 15
 
 Resources:
-  BloomingdalesProductFunction:
+  PinkoProductFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       PackageType: Image
@@ -40,8 +40,8 @@ Outputs:
     Description: "API Gateway endpoint URL for Prod stage for Hello World function"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/product/"
   HelloWorldFunction:
-    Description: "Retrieve products for bloomingdales"
-    Value: !GetAtt BloomingdalesProductFunction.Arn
+    Description: "Retrieve products for pinko"
+    Value: !GetAtt PinkoProductFunction.Arn
   HelloWorldFunctionIamRole:
-    Description: "Implicit IAM Role created for Bloomingdales product function"
-    Value: !GetAtt BloomingdalesProductFunction.Arn
+    Description: "Implicit IAM Role created for Pinko product function"
+    Value: !GetAtt PinkoProductFunction.Arn

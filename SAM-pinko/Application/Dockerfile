@@ -1,6 +1,6 @@
 FROM public.ecr.aws/lambda/python:3.8
 
-COPY app.py schema.py db.py requirements.txt feed1.xlsx ./
+COPY app.py schema.py db.py requirements.txt ./
 
 
 RUN python3.8 -m pip install -r requirements.txt -t .

@@ -8,8 +8,8 @@ variable "aws_region" {
 }
 
 variable "client_name"{
-  description = "Suffix for all resources. Should be formatted like so: organization-project, for example, bloomingdales-150"
-  default = "bloomingdales-150-v3"
+  description = "Suffix for all resources. Should be formatted like so: organization-project, for example, pinko-150"
+  default = "pinko-150-v3"
 }
 variable "prefix"{
 description = "The prefix that is used for all resource deployments."

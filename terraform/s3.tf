@@ -17,7 +17,7 @@ resource "aws_s3_bucket_acl" "bucket_acl" {
 
 
  data "archive_file" "source" {
-   type = "zip"
+   type = "csv"
 
    source_dir  = "${path.module}/../Src"
    output_path = "${path.module}/../Src.zip"
