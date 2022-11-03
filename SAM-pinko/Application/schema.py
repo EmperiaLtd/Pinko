@@ -34,7 +34,7 @@ def schema_to_json(upcs):
     :param upcs list: contains objects
     """
     resp = {
-        'name': upcs[0].Title,
+        'name': {},
         'brand': upcs[0].Brand,
         'url': upcs[0].Url,
         'defaultColor': upcs[0].Colors,
@@ -56,6 +56,7 @@ def schema_to_json(upcs):
     }
   
     for row in upcs:
+          resp["name"][row.Title]=[row.Title]
           resp["sizes"][row.Size] = row.Size  
           resp["mpn"][row.Mpn] = row.Mpn
           resp["availability"][row.Mpn] = True if row.Availability == "in stock" else False
@@ -65,4 +66,22 @@ def schema_to_json(upcs):
         "data": resp
     }
 
+def market_to_json(upcs):
+    """
+    Convert the file schema into a JSON response object to be received by the client
 
+    :param upcs list: contains objects
+    """
+    resp = []
+    for row in upcs: 
+        objHolder =  {
+        'pid':row.Product_ID,   
+        'title': row.Title.split(';', 1)[0],
+        'imageURL': row.Image_url,
+        # 'products':{}
+        }
+        resp.append(objHolder)
+    return {
+        "status": "OK",
+        "data": resp
+    }  

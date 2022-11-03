@@ -1,6 +1,6 @@
 import json
 import pandas as pd
-from schema import get_schema, schema_to_json
+from schema import get_schema, schema_to_json,market_to_json
 from db import connect_to_db                                                                                                        
 import boto3
 import csv
@@ -12,56 +12,27 @@ import numpy as np
 
 headers = {
     "Content-Type": "application/json",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,X-Amz-Security-Token,Authorization,X-Api-Key,X-Requested-With,Accept,Access-Control-Allow-Methods,Access-Control-Allow-Origin,Access-Control-Allow-Headers",
     "Access-Control-Allow-Origin": '*',
-    "Access-Control-Allow-Methods": 'POST'
+    "Access-Control-Allow-Methods": "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT",
+    "X-Requested-With": "*"
 }
 
 db = connect_to_db()
 s3 = boto3.resource('s3')
-
 def lambda_handler(event, context):
-    if event.get('body') == None:
-        response = {
-            "statusCode": 404,
-            "headers": headers,
-            "body": json.dumps({"message": "no body"}),
-        }
-        return response
 
-    body = json.loads(event.get('body'))
-    pid = body.get('pid')
-    market=body.get('market')
-
-    if 'pid' == None:
-        return {
-            "statusCode": 404,
-            "headers": headers,
-            "body": json.dumps({"message": "no pid"})
-        }
-
-    db_obj = load_from_db(pid)
-    # if db_obj is None:
-    file_data = json.dumps(read_csv_from_s3(pid))
-    db.set(pid + "_" + market, file_data) #set the data into database
+    insert_data_into_db()
     return {
-        'statusCode': 200,
-        "headers": headers,
-        "body": file_data
+        "status": "OK",
+        "message": "INSERTED SUCCESSFULLY",
     }
-
-
-def load_from_db(pid):
-  db_obj = db.get(pid)
-  if db_obj is None: return None
-  json_data = json.loads(db_obj.decode('utf-8'))
-  return json_data
 
 #////////////////////////////////////////////////////////
 """main function for read csv file and return the json """
 #////////////////////////////////////////////////////////
 
-def read_csv_from_s3(pid):
+def insert_data_into_db():
     
     
     s3_client =boto3.client('s3')
@@ -83,6 +54,7 @@ def read_csv_from_s3(pid):
     
     
     for file in bucket_list:
+        market="en_GB"
         obj = s3.Object(s3_bucket_name,file)
         data=obj.get()['Body'].read()
         if file == "users/Pinko/PINKO_en_GB (4).csv":
@@ -90,15 +62,33 @@ def read_csv_from_s3(pid):
             for file in df:
                 pinko_data1 = pd.DataFrame(data = file)
                 pinko_data = pd.DataFrame(np.concatenate([pinko_data.values, pinko_data1.values]), columns=pinko_data.columns)
+                print(pinko_data, 'pinko-data')
             upcs = []
-            for index, row in pinko_data.iterrows():
-                if row.Product_ID == pid:
-                    upcs.append(row)
-            if len(upcs) > 0:
-               return schema_to_json(upcs)
+            demo=pinko_data['Product_ID']
+            pid2=pinko_data['Product_ID'].iloc[0]
+            i=0
+            for pid in demo:
+                y=pid
+                if y != pid2:
+                    pid2=y
+                    i=0    
+                if i==0:    
+                    for index, row in pinko_data.iterrows():
+                        if row.Product_ID == pid:
+                                upcs.append(row)
+                    file_data = json.dumps(schema_to_json(upcs))
+                    db.set("Pinko" + "_" + market +"_"+ pid, file_data)
+                    print("inserted",market)
+                    upcs.clear()
+                    i=i+1
 
-  
-    return {
-        "status": "BAD",
-        "message": "Could not find specified PID",
-    }
+            for index, row in pinko_data.iterrows():
+                pid = row.Product_ID
+                if row.Product_ID == pid:
+                    if pid != pid2:
+                        upcs.append(row)
+                        file_d = json.dumps(market_to_json(upcs))
+                        db.set("Pinko"+ "_" + market, file_d)
+                        pid2=pid
+
+
